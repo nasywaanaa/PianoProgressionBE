@@ -199,6 +199,296 @@ async function login(payload, ishashed) {
   }
 }
 
+app.post('/logout', verifyToken, async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'No token provided'
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Logout successful',
+      data: {}
+    });
+  } catch (err) {
+    console.error('Error POST /logout:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error: ' + err.message,
+      data: {}
+    });
+  }
+});
+
+
+
+app.get('/tasks/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params; // Ambil account ID dari URL
+
+    console.log("Account ID from URL:", id);
+    console.log("User ID from Token:", req.user._id);
+
+    // Ambil semua task yang terkait dengan account ID
+    const tasks = await userQuery.getTasksByAccountId(id);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Tasks fetched successfully',
+      data: tasks
+    });
+  } catch (err) {
+    console.error('Error GET /tasks/:id:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error: ' + err.message,
+      data: {}
+    });
+  }
+});
+
+app.post('/tasks/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params; // Ambil account ID dari URL
+
+    console.log("Account ID from URL:", id);
+    console.log("User ID from Token:", req.user._id);
+
+    // Validasi data dari req.body
+    if (!req.body.title || !req.body.deadline) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Task title and deadline are required',
+        data: {}
+      });
+    }
+
+    // Buat task baru yang terkait dengan account ID
+    const task = { ...req.body, userId: id }; // Tambahkan account ID ke task
+    const createdTask = await userQuery.createTask(task);
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Task created successfully',
+      data: createdTask
+    });
+  } catch (err) {
+    console.error('Error POST /tasks/:id:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error: ' + err.message,
+      data: {}
+    });
+  }
+});
+
+app.patch('/tasks/:id', verifyToken, async (req, res) => {
+  try {
+    const taskId = req.params.id;
+
+    console.log("Task ID from URL:", taskId);
+    console.log("User ID from Token:", req.user._id);
+
+    // Ambil task berdasarkan taskId
+    const task = await userQuery.getTaskById(taskId);
+
+    if (!task) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Task not found',
+      });
+    }
+
+    // Validasi apakah task milik user yang sedang login
+    if (task.userId.toString() !== req.user._id) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You are not authorized to update this task',
+      });
+    }
+
+    // Perbarui task
+    const updatedTask = await userQuery.updateTask(taskId, req.body);
+    res.status(200).json({
+      status: 'success',
+      message: 'Task updated successfully',
+      data: updatedTask,
+    });
+  } catch (err) {
+    console.error('Error PATCH /tasks/:id:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to update task: ' + err.message,
+    });
+  }
+});
+
+app.put('/tasks/:taskid/:userid/status', verifyToken, async (req, res) => {
+  try {
+    const { taskid, userid } = req.params;
+
+    console.log("Task ID from URL:", taskid); // Log Task ID
+    console.log("User ID from URL:", userid); // Log User ID
+
+    // Perbarui status task menjadi "submitted"
+    const updatedTask = await userQuery.updateTaskStatusById(taskid, userid);
+
+    if (!updatedTask) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Task not found or not eligible for status update',
+        data: {}
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Task status updated to submitted',
+      data: updatedTask
+    });
+  } catch (err) {
+    console.error('Error updating task status:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error: ' + err.message,
+      data: {}
+    });
+  }
+});
+
+app.put('/tasks/:taskid/:userid/reset-status', verifyToken, async (req, res) => {
+  try {
+    const { taskid, userid } = req.params;
+
+    console.log("Task ID from URL:", taskid); // Log Task ID
+    console.log("User ID from URL:", userid); // Log User ID
+
+    // Perbarui status task menjadi "submitted"
+    const updatedTask = await userQuery.resetTaskStatusById(taskid, userid);
+
+    if (!updatedTask) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Task not found or not eligible for status update',
+        data: {}
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Task status updated to submitted',
+      data: updatedTask
+    });
+  } catch (err) {
+    console.error('Error updating task status:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error: ' + err.message,
+      data: {}
+    });
+  }
+});
+
+app.patch('/tasks/:id', verifyToken, async (req, res) => {
+  try {
+    const taskId = req.params.id;
+
+    console.log("Task ID from URL:", taskId);
+    console.log("User ID from Token:", req.user._id);
+
+    // Ambil task berdasarkan taskId
+    const task = await userQuery.getTaskById(taskId);
+
+    if (!task) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Task not found',
+      });
+    }
+
+    // Validasi apakah task milik user yang sedang login
+    if (task.userId.toString() !== req.user._id) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You are not authorized to update this task',
+      });
+    }
+
+    // Perbarui task
+    const updatedTask = await userQuery.updateTask(taskId, req.body);
+    res.status(200).json({
+      status: 'success',
+      message: 'Task updated successfully',
+      data: updatedTask,
+    });
+  } catch (err) {
+    console.error('Error PATCH /tasks/:id:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to update task: ' + err.message,
+    });
+  }
+});
+
+app.post('/schedule/generate', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user._id; // Ambil userId dari token
+    const schedule = await userQuery.generateSchedule(userId, new Date());
+    res.status(201).json({
+      status: 'success',
+      message: 'Schedule generated successfully',
+      data: schedule,
+    });
+  } catch (err) {
+    console.error('Error POST /schedule/generate:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to generate schedule: ' + err.message,
+    });
+  }
+});
+
+app.get('/schedule', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user._id; // Ambil userId dari token
+    const date = req.query.date; // Opsional: Filter berdasarkan tanggal
+    const schedules = await userQuery.getSchedules(userId, date);
+    res.status(200).json({
+      status: 'success',
+      message: 'Schedules fetched successfully',
+      data: schedules,
+    });
+  } catch (err) {
+    console.error('Error GET /schedule:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch schedules: ' + err.message,
+    });
+  }
+});
+
+app.delete('/schedule', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user._id; // Ambil userId dari token
+    await userQuery.deleteSchedules(userId);
+    res.status(200).json({
+      status: 'success',
+      message: 'All schedules deleted successfully',
+    });
+  } catch (err) {
+    console.error('Error DELETE /schedule:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to delete schedules: ' + err.message,
+    });
+  }
+});
+
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/documentation.html');
