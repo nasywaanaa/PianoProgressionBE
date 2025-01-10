@@ -127,26 +127,56 @@ async function register(payload) {
 app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const payload = { email, password };
-    const {token, isAdmin} = await login(payload, false); // Untuk nunggu sebentar saat lagi memproses
+
+    // Validasi input
+    if (!email || !password) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Email and password are required',
+      });
+    }
+
+    // Login logic (sesuaikan dengan implementasi Anda)
+    const user = await User.findOne({ email }); // Cari user berdasarkan email
+    if (!user) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid email or password',
+      });
+    }
+
+    const isPasswordValid = await user.comparePassword(password); // Bandingkan password (gunakan hash-checking sesuai kebutuhan Anda)
+    if (!isPasswordValid) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid email or password',
+      });
+    }
+
+    // Buat token
+    const payload = { email: user.email, userId: user._id, isAdmin: user.isAdmin };
+    const token = await generateToken(payload); // Pastikan fungsi ini mengembalikan JWT
+
+    // Kirim response
     res.status(200).json({
       status: 'success',
       message: 'Login success',
       data: {
-        user: email,
+        user: user.email,
         token: token,
-        isAdmin: isAdmin
-      }
-    }); // Responds dan status yang dikirim, status bisa variatif tergantung message
+        isAdmin: user.isAdmin,
+        userId: user._id, // Sertakan userId dalam response
+      },
+    });
   } catch (err) {
     console.error('Error POST Login:', err);
-    res.status(400).json({
+    res.status(500).json({
       status: 'error',
-      message: 'Login error: ' + err.message,
-      data: {}
+      message: 'Internal Server Error: ' + err.message,
     });
   }
 });
+
 
 app.get('/login/verify', verifyToken, async (req, res) => {
   try {

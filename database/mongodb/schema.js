@@ -13,7 +13,7 @@ const taskSchema = new mongoose.Schema({
   title: { type: String, required: true },
   writer: { type: String, required: true },
   deadline: { type: Date, required: true },
-  grade: { type: String, required: false },
+  grade: { type: String, required: true },
   additionalMaterial: { type: String, required: false },
   notes: { type: String, required: false },
   status: { type: String, enum: ['unanswered', 'submitted'], default: 'unanswered' },
