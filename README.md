@@ -10,10 +10,24 @@ Piano Progression is a platform designed to support piano learning, particularly
 
 | Description                   | Link                                                    |
 |-------------------------------|--------------------------------------------------------|
-| Link deployment frontend      | [api.pianoprogression.web.id](https://api.pianoprogression.web.id) |
-| Link deployment backend       | [pianoprogression.web.id](https://pianoprogression.web.id)         |
+| Link deployment               | [pianoprogression.web.id](https://pianoprogression.web.id) |
+| Link deployment frontend      | [piano-progression-frontend2-git-main-nasywaas-projects.vercel.app/](https://piano-progression-frontend2-git-main-nasywaas-projects.vercel.app/) |
+| Link deployment backend       | [api.pianoprogression.web.id](https://api.pianoprogression.web.id)         |
 | Link GitHub frontend          | [PianoProgressionFE](https://github.com/nasywaanaa/PianoProgressionFE.git) |
 | Link GitHub backend           | [PianoProgressionBE](https://github.com/nasywaanaa/PianoProgressionBE.git) |
+
+Link deployment 
+pianoprogression.web.id
+Link deployment frontend
+piano-progression-frontend2-git-main-nasywaas-projects.vercel.app
+Link deployment backend
+api.pianoprogression.web.id
+Link github frontend
+github.com/nasywaanaa/PianoProgressionFE.git
+Link github frontend
+github.com/nasywaanaa/PianoProgressionBE.git
+
+
 
 ## Table of Contents
 - [Endpoints Table](#endpoints-table)
