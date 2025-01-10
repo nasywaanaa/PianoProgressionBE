@@ -127,52 +127,25 @@ async function register(payload) {
 app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    // Validasi input
-    if (!email || !password) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Email and password are required',
-      });
-    }
-
-    // Login logic (sesuaikan dengan implementasi Anda)
-    const user = await User.findOne({ email }); // Cari user berdasarkan email
-    if (!user) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Invalid email or password',
-      });
-    }
-
-    const isPasswordValid = await user.comparePassword(password); // Bandingkan password (gunakan hash-checking sesuai kebutuhan Anda)
-    if (!isPasswordValid) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Invalid email or password',
-      });
-    }
-
-    // Buat token
-    const payload = { email: user.email, userId: user._id, isAdmin: user.isAdmin };
-    const token = await generateToken(payload); // Pastikan fungsi ini mengembalikan JWT
-
-    // Kirim response
+    const payload = { email, password };
+    const idUser = await userQuery.findOneByEmail(payload.email);
+    const {token, isAdmin} = await login(payload, false); // Untuk nunggu sebentar saat lagi memproses
     res.status(200).json({
       status: 'success',
       message: 'Login success',
       data: {
-        user: user.email,
+        user: email,
         token: token,
-        isAdmin: user.isAdmin,
-        userId: user._id, // Sertakan userId dalam response
-      },
-    });
+        isAdmin: isAdmin,
+        idUser: idUser
+      }
+    }); // Responds dan status yang dikirim, status bisa variatif tergantung message
   } catch (err) {
     console.error('Error POST Login:', err);
-    res.status(500).json({
+    res.status(400).json({
       status: 'error',
-      message: 'Internal Server Error: ' + err.message,
+      message: 'Login error: ' + err.message,
+      data: {}
     });
   }
 });
@@ -237,6 +210,7 @@ async function login(payload, ishashed) {
     throw err;
   }
 }
+
 
 app.post('/logout', verifyToken, async (req, res) => {
   try {
@@ -980,10 +954,10 @@ app.patch('/flashcard/:idFlashcard/:idAccount', verifyToken, async (req, res) =>
 });
 
 
-// app.get('/', function(req, res){
-//   res.sendFile(__dirname + '/documentation.html');
-// });
-
-app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to the public route!' });
+app.get('/', function(req, res){
+  res.sendFile(__dirname + '/Documentation.html');
 });
+
+// app.get('/', (req, res) => {
+//   res.json({ message: 'Welcome to the public route!' });
+// });

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #333;
+            padding: 20px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            color: #00ff99;
+        }
+        header p {
+            margin: 5px 0 0;
+            font-size: 1.2em;
+            color: #bbb;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .endpoint {
+            background-color: #333;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .endpoint h2 {
+            color: #00ff99;
+            margin-top: 0;
+        }
+        .endpoint pre {
+            background-color: #1e1e1e;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .endpoint p {
+            color: #bbb;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table th, table td {
+            border: 1px solid #555;
+            padding: 10px;
+            text-align: left;
+        }
+        table th {
+            background-color: #333;
+            color: #00ff99;
+        }
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            background-color: #333;
+            color: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>API Documentation</h1>
+        <p>PianoProgressionTST API Endpoints</p>
+    </header>
+    <div class="container">
+        <h2>API Endpoints Table</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Method</th>
+                    <th>Endpoint</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>POST</td>
+                    <td>/register</td>
+                    <td>Register a new user</td>
+                </tr>
+                <tr>
+                    <td>POST</td>
+                    <td>/login</td>
+                    <td>Login for an existing user</td>
+                </tr>
+                <tr>
+                    <td>GET</td>
+                    <td>/login/verify</td>
+                    <td>Verify the user login</td>
+                </tr>
+                <tr>
+                    <td>POST</td>
+                    <td>/logout</td>
+                    <td>Logout the current user</td>
+                </tr>
+                <tr>
+                    <td>GET</td>
+                    <td>/tasks/:idAccount</td>
+                    <td>Retrieve tasks for a specific account</td>
+                </tr>
+                <tr>
+                    <td>POST</td>
+                    <td>/tasks/:idAccount</td>
+                    <td>Add a new task to an account</td>
+                </tr>
+                <tr>
+                    <td>PATCH</td>
+                    <td>/tasks/:idAccount</td>
+                    <td>Update an existing task for an account</td>
+                </tr>
+                <tr>
+                    <td>DELETE</td>
+                    <td>/tasks/:idTask/:idAccount</td>
+                    <td>Delete a task from an account</td>
+                </tr>
+                <tr>
+                    <td>PUT</td>
+                    <td>/tasks/:idTask/:idAccount/status</td>
+                    <td>Update the status of a specific task</td>
+                </tr>
+                <tr>
+                    <td>POST</td>
+                    <td>/schedule/generate/:idAccount</td>
+                    <td>Generate a schedule for an account</td>
+                </tr>
+                <tr>
+                    <td>GET</td>
+                    <td>/schedule/:idAccount</td>
+                    <td>Retrieve the schedule for an account</td>
+                </tr>
+                <tr>
+                    <td>DELETE</td>
+                    <td>/schedule/:idAccount</td>
+                    <td>Delete the schedule for an account</td>
+                </tr>
+                <tr>
+                    <td>PATCH</td>
+                    <td>/schedule/:idSchedule/:idAccount/update</td>
+                    <td>Update a schedule for an account</td>
+                </tr>
+                <tr>
+                    <td>POST</td>
+                    <td>/flashcard/:idAccount</td>
+                    <td>Create a flashcard for an account</td>
+                </tr>
+                <tr>
+                    <td>GET</td>
+                    <td>/flashcard/:idAccount</td>
+                    <td>Retrieve flashcards for an account</td>
+                </tr>
+                <tr>
+                    <td>DELETE</td>
+                    <td>/flashcard/:idFlashcard/:idAccount</td>
+                    <td>Delete a flashcard from an account</td>
+                </tr>
+                <tr>
+                    <td>POST</td>
+                    <td>/protected/signup</td>
+                    <td>Signup for a protected service</td>
+                </tr>
+                <tr>
+                    <td>POST</td>
+                    <td>/protected/add</td>
+                    <td>Add a new protected service</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Detailed Endpoints</h2>
+        <div class="endpoint">
+            <h2>POST /register</h2>
+            <p><strong>Description:</strong> Register a new user.</p>
+            <p><strong>Request Body:</strong></p>
+            <pre>{
+    "name": "string",
+    "email": "string",
+    "password": "string"
+}</pre>
+            <p><strong>Success Response (200):</strong></p>
+            <pre>{
+    "status": "success",
+    "message": "User registered successfully"
+}</pre>
+            <p><strong>Error Response (400):</strong></p>
+            <pre>{
+    "status": "error",
+    "message": "Invalid input"
+}</pre>
+            <p><strong>URL:</strong> http://localhost:8080/register</p>
+        </div>
+        <div class="endpoint">
+            <h2>POST /login</h2>
+            <p><strong>Description:</strong> Login for an existing user.</p>
+            <p><strong>Request Body:</strong></p>
+            <pre>{
+    "email": "string",
+    "password": "string"
+}</pre>
+            <p><strong>Success Response (200):</strong></p>
+            <pre>{
+    "status": "success",
+    "message": "Login successful",
+    "token": "string"
+}</pre>
+            <p><strong>Error Response (401):</strong></p>
+            <pre>{
+    "status": "error",
+    "message": "Invalid credentials"
+}</pre>
+            <p><strong>URL:</strong> http://localhost:8080/login</p>
+        </div>
+        <div class="endpoint">
+            <h2>GET /login/verify</h2>
+            <p><strong>Description:</strong> Verify the user login.</p>
+            <p><strong>Success Response (200):</strong></p>
+            <pre>{
+    "status": "success",
+    "message": "Token is valid"
+}</pre>
+            <p><strong>Error Response (401):</strong></p>
+            <pre>{
+    "status": "error",
+    "message": "Token is invalid"
+}</pre>
+            <p><strong>URL:</strong> http://localhost:8080/login/verify</p>
+        </div>
+        <div class="endpoint">
+            <h2>POST /logout</h2>
+            <p><strong>Description:</strong> Logout the current user.</p>
+            <p><strong>Success Response (200):</strong></p>
+            <pre>{
+    "status": "success",
+    "message": "Logged out successfully"
+}</pre>
+            <p><strong>Error Response (400):</strong></p>
+            <pre>{
+    "status": "error",
+    "message": "Logout failed"
+}</pre>
+            <p><strong>URL:</strong> http://localhost:8080/logout</p>
+        </div>
+        <div class="endpoint">
+            <h2>GET /tasks/:idAccount</h2>
+            <p><strong>Description:</strong> Retrieve tasks for a specific account.</p>
+            <p><strong>Success Response (200):</strong></p>
+            <pre>{
+    "status": "success",
+    "tasks": [
+        {
+            "id": "string",
+            "title": "string",
+            "status": "string",
+            "notes": "string"
+        }
+    ]
+}</pre>
+            <p><strong>Error Response (404):</strong></p>
+            <pre>{
+    "status": "error",
+    "message": "Tasks not found"
+}</pre>
+            <p><strong>URL:</strong> http://localhost:8080/tasks/:idAccount</p>
+        </div>
+        <div class="endpoint">
+            <h2>POST /tasks/:idAccount</h2>
+            <p><strong>Description:</strong> Add a new task to an account.</p>
+            <p><strong>Request Body:</strong></p>
+            <pre>{
+    "title": "string",
+    "status": "string",
+    "notes": "string"
+}</pre>
+            <p><strong>Success Response (201):</strong></p>
+            <pre>{
+    "status": "success",
+    "message": "Task created successfully"
+}</pre>
+            <p><strong>Error Response (400):</strong></p>
+            <pre>{
+    "status": "error",
+    "message": "Invalid input"
+}</pre>
+            <p><strong>URL:</strong> http://localhost:8080/tasks/:idAccount</p>
+        </div>
+        <div class="endpoint">
+            <h2>PATCH /tasks/:idAccount</h2>
+            <p><strong>Description:</strong> Update an existing task for an account.</p>
+            <p><strong>Request Body:</strong></p>
+            <pre>{
+        "title": "string",
+        "status": "string",
+        "notes": "string"
+    }</pre>
+            <p><strong>Success Response (200):</strong></p>
+            <pre>{
+        "status": "success",
+        "message": "Task updated successfully"
+    }</pre>
+            <p><strong>Error Response (404):</strong></p>
+            <pre>{
+        "status": "error",
+        "message": "Task not found"
+    }</pre>
+            <p><strong>URL:</strong> http://localhost:8080/tasks/:idAccount</p>
+        </div>
+    
+        <div class="endpoint">
+            <h2>DELETE /tasks/:idTask/:idAccount</h2>
+            <p><strong>Description:</strong> Delete a task from an account.</p>
+            <p><strong>Success Response (200):</strong></p>
+            <pre>{
+        "status": "success",
+        "message": "Task deleted successfully"
+    }</pre>
+            <p><strong>Error Response (404):</strong></p>
+            <pre>{
+        "status": "error",
+        "message": "Task not found"
+    }</pre>
+            <p><strong>URL:</strong> http://localhost:8080/tasks/:idTask/:idAccount</p>
+        </div>
+    
+        <div class="endpoint">
+            <h2>PUT /tasks/:idTask/:idAccount/status</h2>
+            <p><strong>Description:</strong> Update the status of a specific task.</p>
+            <p><strong>Request Body:</strong></p>
+            <pre>{
+        "status": "string"
+    }</pre>
+            <p><strong>Success Response (200):</strong></p>
+            <pre>{
+        "status": "success",
+        "message": "Task status updated successfully"
+    }</pre>
+            <p><strong>Error Response (404):</strong></p>
+            <pre>{
+        "status": "error",
+        "message": "Task not found"
+    }</pre>
+            <p><strong>URL:</strong> http://localhost:8080/tasks/:idTask/:idAccount/status</p>
+        </div>
+    
+        <div class="endpoint">
+            <h2>POST /schedule/generate/:idAccount</h2>
+            <p><strong>Description:</strong> Generate a schedule for an account.</p>
+            <p><strong>Success Response (201):</strong></p>
+            <pre>{
+        "status": "success",
+        "message": "Schedule generated successfully",
+        "data": [
+            {
+                "taskId": "string",
+                "date": "string"
+            }
+        ]
+    }</pre>
+            <p><strong>Error Response (400):</strong></p>
+            <pre>{
+        "status": "error",
+        "message": "No tasks available for scheduling"
+    }</pre>
+            <p><strong>URL:</strong> http://localhost:8080/schedule/generate/:idAccount</p>
+        </div>
+    
+        <div class="endpoint">
+            <h2>GET /schedule/:idAccount</h2>
+            <p><strong>Description:</strong> Retrieve the schedule for an account.</p>
+            <p><strong>Success Response (200):</strong></p>
+            <pre>{
+        "status": "success",
+        "message": "Schedules fetched successfully",
+        "data": [
+            {
+                "taskId": "string",
+                "date": "string"
+            }
+        ]
+    }</pre>
+            <p><strong>Error Response (404):</strong></p>
+            <pre>{
+        "status": "error",
+        "message": "Schedules not found"
+    }</pre>
+            <p><strong>URL:</strong> http://localhost:8080/schedule/:idAccount</p>
+        </div>
+    
+        <div class="endpoint">
+            <h2>DELETE /schedule/:idAccount</h2>
+            <p><strong>Description:</strong> Delete the schedule for an account.</p>
+            <p><strong>Success Response (200):</strong></p>
+            <pre>{
+        "status": "success",
+        "message": "All schedules deleted successfully"
+    }</pre>
+            <p><strong>Error Response (404):</strong></p>
+            <pre>{
+        "status": "error",
+        "message": "Schedules not found"
+    }</pre>
+            <p><strong>URL:</strong> http://localhost:8080/schedule/:idAccount</p>
+        </div>
+
+
+        <div class="endpoint">
+            <h2>PATCH /schedule/:idSchedule/:idAccount/update</h2>
+            <p><strong>Description:</strong> Update a schedule for an account.</p>
+            <p><strong>Request Body:</strong></p>
+            <pre>{
+        "date": "2025-01-15T10:00:00.000Z",
+        "notes": "Updated schedule notes"
+    }</pre>
+            <p><strong>Success Response (200):</strong></p>
+            <pre>{
+        "status": "success",
+        "message": "Schedule updated successfully",
+        "data": {}
+    }</pre>
+            <p><strong>Error Response (404):</strong></p>
+            <pre>{
+        "status": "error",
+        "message": "Schedule not found"
+    }</pre>
+            <p><strong>URL:</strong> http://localhost:8080/schedule/:idSchedule/:idAccount/update</p>
+        </div>
+    
+        <div class="endpoint">
+            <h2>POST /flashcard/:idAccount</h2>
+            <p><strong>Description:</strong> Create a flashcard for an account.</p>
+            <p><strong>Request Body:</strong></p>
+            <pre>{
+        "title": "string",
+        "description": "string"
+    }</pre>
+            <p><strong>Success Response (201):</strong></p>
+            <pre>{
+        "status": "success",
+        "message": "Flashcard created successfully"
+    }</pre>
+            <p><strong>Error Response (400):</strong></p>
+            <pre>{
+        "status": "error",
+        "message": "Invalid input"
+    }</pre>
+            <p><strong>URL:</strong> http://localhost:8080/flashcard/:idAccount</p>
+        </div>
+    
+        <div class="endpoint">
+            <h2>GET /flashcard/:idAccount</h2>
+            <p><strong>Description:</strong> Retrieve flashcards for an account.</p>
+            <p><strong>Success Response (200):</strong></p>
+            <pre>{
+        "status": "success",
+        "message": "Flashcards retrieved successfully",
+        "data": [
+            {
+                "id": "string",
+                "title": "string",
+                "description": "string"
+            }
+        ]
+    }</pre>
+            <p><strong>Error Response (404):</strong></p>
+            <pre>{
+        "status": "error",
+        "message": "No flashcards found"
+    }</pre>
+            <p><strong>URL:</strong> http://localhost:8080/flashcard/:idAccount</p>
+        </div>
+    
+        <div class="endpoint">
+            <h2>DELETE /flashcard/:idFlashcard/:idAccount</h2>
+            <p><strong>Description:</strong> Delete a flashcard from an account.</p>
+            <p><strong>Success Response (200):</strong></p>
+            <pre>{
+        "status": "success",
+        "message": "Flashcard deleted successfully"
+    }</pre>
+            <p><strong>Error Response (404):</strong></p>
+            <pre>{
+        "status": "error",
+        "message": "Flashcard not found"
+    }</pre>
+            <p><strong>URL:</strong> http://localhost:8080/flashcard/:idFlashcard/:idAccount</p>
+        </div>
+    
+        <div class="endpoint">
+            <h2>POST /protected/signup</h2>
+            <p><strong>Description:</strong> Signup for a protected service.</p>
+            <p><strong>Request Body:</strong></p>
+            <pre>{
+        "name": "string",
+        "email": "string",
+        "password": "string"
+    }</pre>
+            <p><strong>Success Response (201):</strong></p>
+            <pre>{
+        "status": "success",
+        "message": "Signup successful"
+    }</pre>
+            <p><strong>Error Response (400):</strong></p>
+            <pre>{
+        "status": "error",
+        "message": "Signup failed"
+    }</pre>
+            <p><strong>URL:</strong> http://localhost:8080/protected/signup</p>
+        </div>
+    
+        <div class="endpoint">
+            <h2>POST /protected/add</h2>
+            <p><strong>Description:</strong> Add a new protected service.</p>
+            <p><strong>Request Body:</strong></p>
+            <pre>{
+        "serviceName": "string",
+        "details": "string"
+    }</pre>
+            <p><strong>Success Response (201):</strong></p>
+            <pre>{
+        "status": "success",
+        "message": "Protected service added successfully"
+    }</pre>
+            <p><strong>Error Response (400):</strong></p>
+            <pre>{
+        "status": "error",
+        "message": "Invalid input"
+    }</pre>
+            <p><strong>URL:</strong> http://localhost:8080/protected/add</p>
+        </div>
+    </div>
+    <footer>
+        <p>© 2025 PianoProgressionTST API Documentation</p>
+    </footer>
+</body>
+</html>
