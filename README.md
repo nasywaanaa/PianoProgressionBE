@@ -2,6 +2,10 @@
 
 Piano Progression is a platform designed to support piano learning, particularly for users aiming to achieve ABRSM (Associated Board of the Royal Schools of Music) certification, assisting them on their journey to mastering the piano from Grade 1 to Grade 8.
 
+## Piano Progression Project
+
+[II3160_Laporan Tugas Besar TST_Nasywaa Anggun Athiefah](./II3160_Tugas%20Besar%20TST_Nasywaa%20Anggun%20Athiefah.pdf)
+
 ## Deployment and Repository Links
 
 | Description                   | Link                                                    |
@@ -44,7 +48,7 @@ npm run start
 ### Build the Backend Docker Image
 To create a Docker image for the backend, use the following command:
 ```bash
-docker build . -t motoran
+docker build . -t ghcr.io/nasywaanaa/pianoprogression
 ```
 
 ### Run with Docker Compose
