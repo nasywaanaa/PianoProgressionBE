@@ -2,6 +2,8 @@ require('dotenv').config();
 const mongodb = require('./database/mongodb/db');
 const userQuery = require('./database/mongodb/query');
 const cors = require('cors');
+const axios = require('axios');
+
 mongodb.connectDB();
 
 // Import the express module to create and configure the HTTP server
@@ -35,6 +37,7 @@ let users = [];
 // Middleware to parse JSON bodies
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+
 
 // Start the server and listen on the defined port
 app.listen(PORT, () => {
@@ -225,8 +228,6 @@ app.post('/logout', verifyToken, async (req, res) => {
   }
 });
 
-
-
 app.get('/tasks/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params; // Ambil account ID dari URL
@@ -327,6 +328,41 @@ app.patch('/tasks/:id', verifyToken, async (req, res) => {
     });
   }
 });
+
+app.delete('/tasks/:idTask/:idAccount', verifyToken, async (req, res) => {
+  try {
+    const { idTask, idAccount } = req.params; // Extract task ID and account ID from URL
+
+    console.log("Task ID from URL:", idTask);
+    console.log("Account ID from URL:", idAccount);
+    console.log("User ID from Token:", req.user._id);
+
+    // Attempt to delete the task
+    const deletedTask = await userQuery.deleteTaskByIdAndAccount(idTask, idAccount);
+
+    // If no task was deleted, send a 404 response
+    if (!deletedTask) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Task not found or already deleted',
+      });
+    }
+
+    // Send a success response
+    res.status(200).json({
+      status: 'success',
+      message: 'Task deleted successfully',
+      data: deletedTask,
+    });
+  } catch (err) {
+    console.error('Error DELETE /tasks/:idTask/:idAccount:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error: ' + err.message,
+    });
+  }
+});
+
 
 app.put('/tasks/:taskid/:userid/status', verifyToken, async (req, res) => {
   try {
@@ -435,14 +471,74 @@ app.patch('/tasks/:id', verifyToken, async (req, res) => {
   }
 });
 
-app.post('/schedule/generate', verifyToken, async (req, res) => {
+app.post('/schedule/generate/:id', verifyToken, async (req, res) => {
   try {
-    const userId = req.user._id; // Ambil userId dari token
-    const schedule = await userQuery.generateSchedule(userId, new Date());
+    const { id } = req.params;
+    console.log("User ID from Token:", req.user._id);
+    const currentDate = new Date();
+
+    console.log(`Generating schedule for User ID: ${id}`);
+
+    // Fetch all unanswered tasks
+    const tasks = await userQuery.getUnansweredTasks(id, currentDate);
+
+    if (tasks.length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'No tasks available for scheduling',
+        data: [],
+      });
+    }
+
+    // Sort tasks by deadline
+    const sortedTasks = tasks.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+    // Fetch existing schedules
+    const existingSchedules = await userQuery.getSchedules(id);
+
+    // Extract task IDs from existing schedules
+    const existingTaskIds = new Set(existingSchedules.map(sch => sch.taskId.toString()));
+    const currentTaskIds = new Set(sortedTasks.map(task => task._id.toString()));
+
+    // Check if tasks are the same
+    const isScheduleUpToDate =
+      existingTaskIds.size === currentTaskIds.size &&
+      [...currentTaskIds].every(id => existingTaskIds.has(id));
+
+    if (isScheduleUpToDate) {
+      // If tasks are the same, return the existing schedule
+      return res.status(200).json({
+        status: 'success',
+        message: 'Schedule is up-to-date. No changes needed.',
+        data: existingSchedules,
+      });
+    }
+
+    // If tasks are different, regenerate the schedule
+    console.log('Regenerating schedules...');
+    await userQuery.deleteSchedules(id); // Clear existing schedules
+
+    const newSchedules = [];
+    let currentDay = new Date(currentDate);
+
+    for (const task of sortedTasks) {
+      newSchedules.push({
+        taskId: task._id,
+        userId: id,
+        date: new Date(currentDay),
+      });
+
+      // Increment day for the next task
+      currentDay = new Date(currentDay.setDate(currentDay.getDate() + 1));
+    }
+
+    // Save new schedules to the database
+    const createdSchedules = await userQuery.createSchedules(newSchedules);
+
     res.status(201).json({
       status: 'success',
       message: 'Schedule generated successfully',
-      data: schedule,
+      data: createdSchedules,
     });
   } catch (err) {
     console.error('Error POST /schedule/generate:', err);
@@ -453,11 +549,17 @@ app.post('/schedule/generate', verifyToken, async (req, res) => {
   }
 });
 
-app.get('/schedule', verifyToken, async (req, res) => {
+
+// GET /schedule - Mendapatkan semua jadwal
+app.get('/schedule/:id', verifyToken, async (req, res) => {
   try {
-    const userId = req.user._id; // Ambil userId dari token
-    const date = req.query.date; // Opsional: Filter berdasarkan tanggal
-    const schedules = await userQuery.getSchedules(userId, date);
+    const { id } = req.params;
+    const date = req.query.date ? new Date(req.query.date) : null; // Opsional: Filter berdasarkan tanggal
+
+    console.log(`Fetching schedules for User ID: ${id}, Date: ${date || 'All'}`);
+
+    const schedules = await userQuery.getSchedules(id, date);
+
     res.status(200).json({
       status: 'success',
       message: 'Schedules fetched successfully',
@@ -472,10 +574,15 @@ app.get('/schedule', verifyToken, async (req, res) => {
   }
 });
 
-app.delete('/schedule', verifyToken, async (req, res) => {
+// DELETE /schedule - Menghapus semua jadwal
+app.delete('/schedule/:id', verifyToken, async (req, res) => {
   try {
-    const userId = req.user._id; // Ambil userId dari token
-    await userQuery.deleteSchedules(userId);
+    const { id } = req.params;
+
+    console.log(`Deleting all schedules for User ID: ${id}`);
+
+    await userQuery.deleteSchedules(id);
+
     res.status(200).json({
       status: 'success',
       message: 'All schedules deleted successfully',
@@ -489,7 +596,358 @@ app.delete('/schedule', verifyToken, async (req, res) => {
   }
 });
 
+app.delete('/schedule/:scheduleid/:userid/delete', verifyToken, async (req, res) => {
+  try {
+    const { scheduleid, userid } = req.params;
 
-app.get('/', function(req, res){
-  res.sendFile(__dirname + '/documentation.html');
+    console.log("Task ID from URL:", scheduleid); // Log Task ID
+    console.log("User ID from URL:", userid); // Log User ID
+
+    console.log(`Deleting schedule with ID: ${scheduleid} for User ID: ${userid}`);
+
+    // Cari dan hapus jadwal berdasarkan ID dan user ID
+    const deletedSchedule = await userQuery.deleteScheduleById(scheduleid, userid);
+
+    if (!deletedSchedule) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Schedule not found or not authorized to delete',
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Schedule deleted successfully',
+      data: deletedSchedule,
+    });
+  } catch (err) {
+    console.error('Error DELETE /schedule/:id:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to delete schedule: ' + err.message,
+    });
+  }
+});
+
+app.patch('/schedule/:scheduleid/:userid/update', verifyToken, async (req, res) => {
+  try {
+    const { scheduleid, userid } = req.params;
+
+    console.log("Schedule ID from URL:", scheduleid); // Log Schedule ID
+    console.log("User ID from URL:", userid); // Log User ID
+
+    const { date, taskUpdates } = req.body; // Data baru untuk jadwal dan task terkait
+
+    // Validasi apakah ada data yang dikirimkan
+    if (!date && !taskUpdates) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Either new date or task updates are required to update the schedule',
+      });
+    }
+
+    console.log(`Updating schedule with ID: ${scheduleid} for User ID: ${userid}`);
+
+    // Cari dan update jadwal berdasarkan ID dan user ID
+    const updatedSchedule = await userQuery.updateScheduleById(scheduleid, userid, { date });
+
+    if (!updatedSchedule) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Schedule not found or not authorized to update',
+      });
+    }
+
+    // Jika ada pembaruan pada task terkait
+    if (taskUpdates) {
+      console.log("Updating task with data:", taskUpdates);
+
+      const updatedTask = await userQuery.updateTask(updatedSchedule.taskId, taskUpdates);
+
+      if (!updatedTask) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Task not found or not authorized to update',
+        });
+      }
+
+      console.log("Task updated successfully:", updatedTask);
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Schedule and related task updated successfully',
+      data: {
+        schedule: updatedSchedule,
+      },
+    });
+  } catch (err) {
+    console.error('Error PATCH /schedule/:scheduleid/:userid/update:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to update schedule and task: ' + err.message,
+    });
+  }
+});
+
+// Endpoint untuk mengintegrasikan API eksternal
+app.post('/external/schedule', verifyToken, async (req, res) => {
+  try {
+      const { tasks } = req.body;
+
+      // Validasi input tasks
+      if (!tasks || tasks.length === 0) {
+          return res.status(400).json({
+              status: 'error',
+              message: 'Tasks are required',
+          });
+      }
+
+      // Memastikan setiap task memiliki task_name dan deadline
+      const invalidTasks = tasks.filter(
+          (task) => !task.task_name || !task.deadline
+      );
+      if (invalidTasks.length > 0) {
+          return res.status(400).json({
+              status: 'error',
+              message: 'One or more tasks have invalid or missing fields: task_name and deadline are required.',
+          });
+      }
+
+      // Mengirim request ke API eksternal (https://api.taskly.web.id)
+      const response = await axios.post('https://api.taskly.web.id/external', {
+          tasks,
+      });
+
+      // Menangani respon dari API eksternal
+      const { scheduledTasks, unscheduledTasks } = response.data;
+
+      res.status(200).json({
+          status: 'success',
+          message: 'Schedule generated successfully',
+          data: {
+              scheduledTasks,
+              unscheduledTasks,
+          },
+      });
+  } catch (error) {
+      console.error('Error in external scheduling:', error);
+
+      // Menangani error dari API eksternal atau sistem
+      if (error.response) {
+          // Error dari API eksternal
+          return res.status(error.response.status).json({
+              status: 'error',
+              message: error.response.data.message || 'Error from external API',
+          });
+      }
+
+      res.status(500).json({
+          status: 'error',
+          message: 'Internal Server Error',
+      });
+  }
+});
+
+
+app.post('/flashcard/:idAccount', verifyToken, async (req, res) => {
+  try {
+    const { idAccount } = req.params;
+    const { title, description } = req.body;
+
+    console.log("Account ID from URL:", idAccount);
+    console.log("User ID from Token:", req.user._id);
+
+    // Create flashcard for the specified account
+    const flashcardData = {
+      userId: idAccount,
+      title,
+      description,
+      questions: [],
+    };
+
+    const newFlashcard = await userQuery.createFlashcard(flashcardData);
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Flashcard created successfully',
+      data: newFlashcard,
+    });
+  } catch (err) {
+    console.error('Error POST /flashcard/:idAccount:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to create flashcard: ' + err.message,
+    });
+  }
+});
+
+
+app.get('/flashcard/:idAccount', verifyToken, async (req, res) => {
+  try {
+    const { idAccount } = req.params;
+
+    console.log("Account ID from URL:", idAccount);
+    console.log("User ID from Token:", req.user._id);
+
+    const flashcards = await userQuery.getFlashcardsByUserId(idAccount);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Flashcards fetched successfully',
+      data: flashcards,
+    });
+  } catch (err) {
+    console.error('Error GET /flashcard/:idAccount:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch flashcards: ' + err.message,
+    });
+  }
+});
+
+app.delete('/flashcard/:idFlashcard/:idAccount', verifyToken, async (req, res) => {
+  try {
+    const { idFlashcard, idAccount } = req.params;
+
+    console.log("Flashcard ID from URL:", idFlashcard);
+    console.log("Account ID from URL:", idAccount);
+
+    const deletedFlashcard = await userQuery.deleteFlashcardById(idFlashcard, idAccount);
+
+    if (!deletedFlashcard) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Flashcard not found',
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Flashcard deleted successfully',
+      data: deletedFlashcard,
+    });
+  } catch (err) {
+    console.error('Error DELETE /flashcard/:idFlashcard/:idAccount:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to delete flashcard: ' + err.message,
+    });
+  }
+});
+
+app.post('/flashcard/:idFlashcard/:idAccount/addquestion', verifyToken, async (req, res) => {
+  try {
+    const { idFlashcard, idAccount } = req.params;
+    const { question, answer } = req.body;
+
+    console.log("Flashcard ID from URL:", idFlashcard);
+    console.log("Account ID from URL:", idAccount);
+
+    const updatedFlashcard = await userQuery.addQuestionToFlashcard(idFlashcard, idAccount, { question, answer });
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Question added successfully',
+      data: updatedFlashcard,
+    });
+  } catch (err) {
+    console.error('Error POST /flashcard/:idFlashcard/:idAccount/addquestion:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to add question: ' + err.message,
+    });
+  }
+});
+
+app.get('/flashcard/:idFlashcard/:idAccount/questions', verifyToken, async (req, res) => {
+  try {
+    const { idFlashcard, idAccount } = req.params;
+
+    console.log("Flashcard ID from URL:", idFlashcard);
+    console.log("Account ID from URL:", idAccount);
+    console.log("User ID from Token:", req.user._id);
+
+    // Fetch the flashcard to ensure it exists and belongs to the given account
+    const flashcard = await userQuery.getFlashcardByIdAndAccountId(idFlashcard, idAccount);
+
+    if (!flashcard) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Flashcard not found for the specified account',
+        data: [],
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Questions fetched successfully',
+      data: flashcard.questions,
+    });
+  } catch (err) {
+    console.error('Error GET /flashcard/:idFlashcard/:idAccount/questions:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch questions: ' + err.message,
+    });
+  }
+});
+
+
+
+app.delete('/flashcard/:idQuestion/:idFlashcard/:idAccount', verifyToken, async (req, res) => {
+  try {
+    const { idQuestion, idFlashcard, idAccount } = req.params;
+
+    console.log("Question ID from URL:", idQuestion);
+    console.log("Flashcard ID from URL:", idFlashcard);
+    console.log("Account ID from URL:", idAccount);
+
+    const updatedFlashcard = await userQuery.deleteQuestionFromFlashcard(idFlashcard, idAccount, idQuestion);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Question deleted successfully',
+      data: updatedFlashcard,
+    });
+  } catch (err) {
+    console.error('Error DELETE /flashcard/:idQuestion/:idFlashcard/:idAccount:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to delete question: ' + err.message,
+    });
+  }
+});
+
+app.patch('/flashcard/:idFlashcard/:idAccount', verifyToken, async (req, res) => {
+  try {
+    const { idFlashcard, idAccount } = req.params;
+    const { title, description } = req.body;
+
+    console.log("Flashcard ID from URL:", idFlashcard);
+    console.log("Account ID from URL:", idAccount);
+
+    const updatedFlashcard = await userQuery.updateFlashcard(idFlashcard, idAccount, { title, description });
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Flashcard updated successfully',
+      data: updatedFlashcard,
+    });
+  } catch (err) {
+    console.error('Error PATCH /flashcard/:idFlashcard/:idAccount:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to update flashcard: ' + err.message,
+    });
+  }
+});
+
+
+// app.get('/', function(req, res){
+//   res.sendFile(__dirname + '/documentation.html');
+// });
+
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to the public route!' });
 });
