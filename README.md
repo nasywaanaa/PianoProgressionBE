@@ -2,6 +2,15 @@
 
 Piano Progression is a platform designed to support piano learning, particularly for users aiming to achieve ABRSM (Associated Board of the Royal Schools of Music) certification, assisting them on their journey to mastering the piano from Grade 1 to Grade 8.
 
+## Deployment and Repository Links
+
+| Description                   | Link                                                    |
+|-------------------------------|--------------------------------------------------------|
+| Link deployment frontend      | [api.pianoprogression.web.id](https://api.pianoprogression.web.id) |
+| Link deployment backend       | [pianoprogression.web.id](https://pianoprogression.web.id)         |
+| Link GitHub frontend          | [PianoProgressionFE](https://github.com/nasywaanaa/PianoProgressionFE.git) |
+| Link GitHub backend           | [PianoProgressionBE](https://github.com/nasywaanaa/PianoProgressionBE.git) |
+
 ## Table of Contents
 - [Endpoints Table](#endpoints-table)
 - [Detailed Endpoints](#detailed-endpoints)
