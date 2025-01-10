@@ -70,20 +70,27 @@ docker-compose up
 
 ## Endpoints Table
 
-| Method | Endpoint                                | Description                                   |
-|--------|----------------------------------------|-----------------------------------------------|
-| PATCH  | `/tasks/:idAccount`                    | Update an existing task for an account       |
-| DELETE | `/tasks/:idTask/:idAccount`            | Delete a task from an account                |
-| PUT    | `/tasks/:idTask/:idAccount/status`     | Update the status of a specific task         |
-| POST   | `/schedule/generate/:idAccount`        | Generate a schedule for an account           |
-| GET    | `/schedule/:idAccount`                | Retrieve the schedule for an account         |
-| DELETE | `/schedule/:idAccount`                | Delete the schedule for an account           |
-| PATCH  | `/schedule/:idSchedule/:idAccount/update` | Update a schedule for an account             |
-| POST   | `/flashcard/:idAccount`               | Create a flashcard for an account            |
-| GET    | `/flashcard/:idAccount`               | Retrieve flashcards for an account           |
-| DELETE | `/flashcard/:idFlashcard/:idAccount`  | Delete a flashcard from an account           |
-| POST   | `/protected/signup`                   | Signup for a protected service               |
-| POST   | `/protected/add`                      | Add a new protected service                  |
+
+| Method | Endpoint                                       | Description                                  |
+|--------|-----------------------------------------------|----------------------------------------------|
+| POST   | /register                                      | Register a new user                          |
+| POST   | /login                                         | Login for an existing user                   |
+| GET    | /login/verify                                  | Verify the user login                        |
+| POST   | /logout                                        | Logout the current user                      |
+| GET    | /tasks/:idAccount                              | Retrieve tasks for a specific account        |
+| POST   | /tasks/:idAccount                              | Add a new task to an account                 |
+| PATCH  | /tasks/:idAccount                              | Update an existing task for an account       |
+| DELETE | /tasks/:idTask/:idAccount                      | Delete a task from an account                |
+| PUT    | /tasks/:idTask/:idAccount/status               | Update the status of a specific task         |
+| POST   | /schedule/generate/:idAccount                  | Generate a schedule for an account           |
+| GET    | /schedule/:idAccount                           | Retrieve the schedule for an account         |
+| DELETE | /schedule/:idAccount                           | Delete the schedule for an account           |
+| PATCH  | /schedule/:idSchedule/:idAccount/update        | Update a schedule for an account             |
+| POST   | /flashcard/:idAccount                          | Create a flashcard for an account            |
+| GET    | /flashcard/:idAccount                          | Retrieve flashcards for an account           |
+| DELETE | /flashcard/:idFlashcard/:idAccount             | Delete a flashcard from an account           |
+| POST   | /protected/signup                              | Signup for a protected service               |
+| POST   | /protected/add                                 | Add a new protected service                  |
 
 ---
 
@@ -230,7 +237,7 @@ docker-compose up
   ```
 - **URL**: `http://localhost:8080/tasks/:idAccount`
 
-#### PATCH `/tasks/:idAccount`
+### PATCH `/tasks/:idAccount`
 - **Description**: Update an existing task for an account.
 - **Request Body**:
   ```json
@@ -256,7 +263,7 @@ docker-compose up
   ```
 - **URL**: `http://localhost:8080/tasks/:idAccount`
 
-#### DELETE `/tasks/:idTask/:idAccount`
+### DELETE `/tasks/:idTask/:idAccount`
 - **Description**: Delete a task from an account.
 - **Success Response (200)**:
   ```json
@@ -274,7 +281,7 @@ docker-compose up
   ```
 - **URL**: `http://localhost:8080/tasks/:idTask/:idAccount`
 
-#### PUT `/tasks/:idTask/:idAccount/status`
+### PUT `/tasks/:idTask/:idAccount/status`
 - **Description**: Update the status of a specific task.
 - **Request Body**:
   ```json
@@ -302,7 +309,7 @@ docker-compose up
 
 ### Schedules
 
-#### POST `/schedule/generate/:idAccount`
+### POST `/schedule/generate/:idAccount`
 - **Description**: Generate a schedule for an account.
 - **Success Response (201)**:
   ```json
@@ -326,7 +333,7 @@ docker-compose up
   ```
 - **URL**: `http://localhost:8080/schedule/generate/:idAccount`
 
-#### GET `/schedule/:idAccount`
+### GET `/schedule/:idAccount`
 - **Description**: Retrieve the schedule for an account.
 - **Success Response (200)**:
   ```json
@@ -350,7 +357,7 @@ docker-compose up
   ```
 - **URL**: `http://localhost:8080/schedule/:idAccount`
 
-#### DELETE `/schedule/:idAccount`
+### DELETE `/schedule/:idAccount`
 - **Description**: Delete the schedule for an account.
 - **Success Response (200)**:
   ```json
@@ -368,7 +375,7 @@ docker-compose up
   ```
 - **URL**: `http://localhost:8080/schedule/:idAccount`
 
-#### PATCH `/schedule/:idSchedule/:idAccount/update`
+### PATCH `/schedule/:idSchedule/:idAccount/update`
 - **Description**: Update a schedule for an account.
 - **Request Body**:
   ```json
@@ -398,7 +405,7 @@ docker-compose up
 
 ### Flashcards
 
-#### POST `/flashcard/:idAccount`
+### POST `/flashcard/:idAccount`
 - **Description**: Create a flashcard for an account.
 - **Request Body**:
   ```json
@@ -423,7 +430,7 @@ docker-compose up
   ```
 - **URL**: `http://localhost:8080/flashcard/:idAccount`
 
-#### GET `/flashcard/:idAccount`
+### GET `/flashcard/:idAccount`
 - **Description**: Retrieve flashcards for an account.
 - **Success Response (200)**:
   ```json
@@ -448,7 +455,7 @@ docker-compose up
   ```
 - **URL**: `http://localhost:8080/flashcard/:idAccount`
 
-#### DELETE `/flashcard/:idFlashcard/:idAccount`
+### DELETE `/flashcard/:idFlashcard/:idAccount`
 - **Description**: Delete a flashcard from an account.
 - **Success Response (200)**:
   ```json
@@ -470,7 +477,7 @@ docker-compose up
 
 ### Protected Services
 
-#### POST `/protected/signup`
+### POST `/protected/signup`
 - **Description**: Signup for a protected service.
 - **Request Body**:
   ```json
@@ -496,7 +503,7 @@ docker-compose up
   ```
 - **URL**: `http://localhost:8080/protected/signup`
 
-#### POST `/protected/add`
+### POST `/protected/add`
 - **Description**: Add a new protected service.
 - **Request Body**:
   ```json
