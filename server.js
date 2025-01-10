@@ -44,6 +44,12 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
+// Enable CORS
+app.use(cors({
+    origin: ['https://piano-progression-frontend2.vercel.app', 'http://localhost:8080'], // Allow frontend URLs
+    credentials: true,
+}));
+
 app.post('/register', async (req, res) => {
   // Async untuk concurrency, request dan responds
   try {
